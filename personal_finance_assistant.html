@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: {
+                            light: 'rgba(255, 255, 255, 0.65)',
+                            dark: 'rgba(15, 23, 42, 0.65)',
+                            borderLight: 'rgba(255, 255, 255, 0.4)',
+                            borderDark: 'rgba(255, 255, 255, 0.1)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            background-attachment: fixed;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .liquid-glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .liquid-glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 15px 45px 0 rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .liquid-glass-input {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        .liquid-glass-input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        .liquid-glass-button {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(37, 99, 235, 0.25) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .liquid-glass-button:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.4) 0%, rgba(37, 99, 235, 0.4) 100%);
+            border-color: rgba(56, 189, 248, 0.6);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        /* Custom scrollbar for glass aesthetic */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col md:flex-row overflow-x-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-64 liquid-glass border-r border-white/10 flex flex-col z-20 shrink-0">
+        <div class="p-6 flex items-center space-x-3 border-b border-white/10">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+                <i class="fa-solid fa-wallet text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-sky-400 bg-clip-text text-transparent">FinGlass 2026</h1>
+                <p class="text-xs text-slate-400 font-medium">Personal Finance AI</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-lg shadow-sky-500/10">
+                <i class="fa-solid fa-chart-pie w-5"></i>
+                <span>Dashboard</span>
+            </button>
+            <button onclick="switchTab('transactions')" id="nav-transactions" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-white/5 hover:text-white border border-transparent">
+                <i class="fa-solid fa-receipt w-5"></i>
+                <span>Transactions</span>
+            </button>
+            <button onclick="switchTab('budgets')" id="nav-budgets" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-white/5 hover:text-white border border-transparent">
+                <i class="fa-solid fa-bullseye w-5"></i>
+                <span>Budgets & Alerts</span>
+            </button>
+            <button onclick="switchTab('goals')" id="nav-goals" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-white/5 hover:text-white border border-transparent">
+                <i class="fa-solid fa-flag-checkered w-5"></i>
+                <span>Savings Goals</span>
+            </button>
+            <button onclick="switchTab('assistant')" id="nav-assistant" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-white/5 hover:text-white border border-transparent relative">
+                <i class="fa-solid fa-wand-magic-sparkles w-5 text-sky-400"></i>
+                <span>AI Advisor</span>
+                <span class="absolute right-3 px-1.5 py-0.5 text-[10px] font-bold bg-sky-500/30 text-sky-300 rounded-full border border-sky-400/30">AI</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-white/10">
+            <div class="liquid-glass-card p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm">
+                        JD
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-semibold truncate">John Doe</p>
+                        <p class="text-xs text-slate-400 truncate">john@finglass.io</p>
+                    </div>
+                </div>
+                <button onclick="resetData()" title="Reset Sample Data" class="text-slate-400 hover:text-red-400 transition-colors p-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <!-- Top Header -->
+        <header class="h-20 liquid-glass border-b border-white/10 px-8 flex items-center justify-between sticky top-0 z-10 shrink-0">
+            <div class="flex items-center space-x-4">
+                <h2 id="current-tab-title" class="text-xl font-bold tracking-tight text-white">Financial Dashboard</h2>
+                <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-2"></span>
+                    Live Sync Active
+                </span>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button onclick="openTransactionModal()" class="liquid-glass-button px-4 py-2 rounded-xl text-sm font-semibold text-white flex items-center space-x-2 shadow-lg">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Add Transaction</span>
+                </button>
+                <div class="relative">
+                    <button onclick="toggleNotifications()" class="w-10 h-10 liquid-glass rounded-xl flex items-center justify-center text-slate-300 hover:text-white transition-colors relative">
+                        <i class="fa-regular fa-bell"></i>
+                        <span id="notification-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-sky-400"></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Container -->
+        <div class="flex-1 p-6 md:p-8 space-y-8 max-w-7xl mx-auto w-full">
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="space-y-8">
+                <!-- Summary Metrics Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Net Worth Card -->
+                    <div class="liquid-glass-card p-6 rounded-3xl relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-sky-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-400">Net Balance</span>
+                            <div class="w-10 h-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                                <i class="fa-solid fa-wallet"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 id="stat-net-worth" class="text-3xl font-bold tracking-tight text-white">$24,850.00</h3>
+                            <div class="flex items-center mt-2 text-xs text-emerald-400 font-medium">
+                                <i class="fa-solid fa-arrow-trend-up mr-1.5"></i>
+                                <span>+12.4% from last month</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Income -->
+                    <div class="liquid-glass-card p-6 rounded-3xl relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-400">Total Income</span>
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                                <i class="fa-solid fa-arrow-down-long"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 id="stat-income" class="text-3xl font-bold tracking-tight text-white">$6,420.00</h3>
+                            <div class="flex items-center mt-2 text-xs text-emerald-400 font-medium">
+                                <i class="fa-solid fa-check mr-1.5"></i>
+                                <span>On track with salary</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Expenses -->
+                    <div class="liquid-glass-card p-6 rounded-3xl relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-rose-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-400">Total Expenses</span>
+                            <div class="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                                <i class="fa-solid fa-arrow-up-long"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 id="stat-expenses" class="text-3xl font-bold tracking-tight text-white">$2,840.00</h3>
+                            <div class="flex items-center mt-2 text-xs text-rose-400 font-medium">
+                                <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
+                                <span>Dining out up 15%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Savings Rate -->
+                    <div class="liquid-glass-card p-6 rounded-3xl relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-400">Savings Rate</span>
+                            <div class="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                                <i class="fa-solid fa-piggy-bank"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 id="stat-savings-rate" class="text-3xl font-bold tracking-tight text-white">55.8%</h3>
+                            <div class="flex items-center mt-2 text-xs text-purple-400 font-medium">
+                                <i class="fa-solid fa-star mr-1.5"></i>
+                                <span>Exceeds target (40%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Cash Flow Chart -->
+                    <div class="liquid-glass-card p-6 rounded-3xl lg:col-span-2 flex flex-col">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Cash Flow Overview</h3>
+                                <p class="text-xs text-slate-400">Income vs Expenses over the last 6 months</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <span class="flex items-center text-xs text-slate-300"><span class="w-3 h-3 rounded-full bg-sky-400 inline-block mr-1"></span>Income</span>
+                                <span class="flex items-center text-xs text-slate-300"><span class="w-3 h-3 rounded-full bg-rose-400 inline-block mr-1"></span>Expenses</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 relative min-h-[300px]">
+                            <canvas id="cashFlowChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Expense Breakdown Chart -->
+                    <div class="liquid-glass-card p-6 rounded-3xl flex flex-col">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-bold text-white">Expense Distribution</h3>
+                            <p class="text-xs text-slate-400">Categorized spending this month</p>
+                        </div>
+                        <div class="flex-1 relative flex items-center justify-center min-h-[250px]">
+                            <canvas id="expensePieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Recent Transactions & Insights Preview -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Transactions Widget -->
+                    <div class="liquid-glass-card p-6 rounded-3xl lg:col-span-2 flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white">Recent Transactions</h3>
+                            <button onclick="switchTab('transactions')" class="text-xs text-sky-400 hover:underline font-medium">View All</button>
+                        </div>
+                        <div id="dashboard-recent-list" class="divide-y divide-white/10 space-y-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- AI Instant Financial Tip -->
+                    <div class="liquid-glass-card p-6 rounded-3xl flex flex-col justify-between bg-gradient-to-br from-sky-500/10 via-indigo-500/10 to-purple-500/10 border-sky-500/30">
+                        <div>
+                            <div class="flex items-center space-x-2 text-sky-400 mb-3">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider">AI Financial Insight</span>
+                            </div>
+                            <h4 id="ai-quick-tip-title" class="font-bold text-white text-base mb-2">Optimize Your Subscriptions</h4>
+                            <p id="ai-quick-tip-desc" class="text-sm text-slate-300 leading-relaxed">
+                                You have 5 active streaming services totaling $78/mo. You haven't used 2 of them in the last 30 days. Canceling them could save you $312 annually.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                            <span class="text-xs text-slate-400">Generated 2h ago</span>
+                            <button onclick="switchTab('assistant')" class="px-3 py-1.5 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-semibold hover:bg-sky-500/30 transition-all">
+                                Ask AI Advisor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: TRANSACTIONS -->
+            <section id="tab-transactions" class="space-y-6 hidden">
+                <div class="liquid-glass-card p-6 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-4 flex-1">
+                        <!-- Search Box -->
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="tx-search" oninput="renderTransactions()" placeholder="Search transactions..." class="liquid-glass-input w-full pl-11 pr-4 py-2.5 rounded-2xl text-sm placeholder-slate-400">
+                        </div>
+                        <!-- Filter Type -->
+                        <select id="tx-filter-type" onchange="renderTransactions()" class="liquid-glass-input px-4 py-2.5 rounded-2xl text-sm w-full sm:w-auto">
+                            <option value="all" class="bg-slate-900">All Types</option>
+                            <option value="income" class="bg-slate-900">Income</option>
+                            <option value="expense" class="bg-slate-900">Expense</option>
+                        </select>
+                        <!-- Filter Category -->
+                        <select id="tx-filter-category" onchange="renderTransactions()" class="liquid-glass-input px-4 py-2.5 rounded-2xl text-sm w-full sm:w-auto">
+                            <option value="all" class="bg-slate-900">All Categories</option>
+                            <option value="Salary" class="bg-slate-900">Salary</option>
+                            <option value="Food & Dining" class="bg-slate-900">Food & Dining</option>
+                            <option value="Housing" class="bg-slate-900">Housing</option>
+                            <option value="Transport" class="bg-slate-900">Transport</option>
+                            <option value="Entertainment" class="bg-slate-900">Entertainment</option>
+                            <option value="Shopping" class="bg-slate-900">Shopping</option>
+                            <option value="Utilities" class="bg-slate-900">Utilities</option>
+                        </select>
+                    </div>
+                    <button onclick="openTransactionModal()" class="liquid-glass-button px-5 py-2.5 rounded-2xl text-sm font-semibold text-white flex items-center justify-center space-x-2 shadow-lg shrink-0">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add New</span>
+                    </button>
+                </div>
+
+                <!-- Transactions Table Card -->
+                <div class="liquid-glass-card rounded-3xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/10 text-xs font-semibold text-slate-400 uppercase tracking-wider bg-white/5">
+                                    <th class="p-5">Description</th>
+                                    <th class="p-5">Category</th>
+                                    <th class="p-5">Date</th>
+                                    <th class="p-5">Account</th>
+                                    <th class="p-5 text-right">Amount</th>
+                                    <th class="p-5 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table-body" class="divide-y divide-white/5 text-sm">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="no-transactions" class="hidden p-12 text-center text-slate-400">
+                        <i class="fa-solid fa-receipt text-4xl mb-3 text-slate-500"></i>
+                        <p class="text-base font-semibold text-white">No transactions found</p>
+                        <p class="text-xs text-slate-400 mt-1">Try adjusting your filters or add a new transaction.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: BUDGETS & ALERTS -->
+            <section id="tab-budgets" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Monthly Budget Limits</h3>
+                        <p class="text-xs text-slate-400">Monitor and manage your spending thresholds with real-time alerts</p>
+                    </div>
+                    <button onclick="openBudgetModal()" class="liquid-glass-button px-4 py-2 rounded-xl text-sm font-semibold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Set Budget</span>
+                    </button>
+                </div>
+
+                <!-- Budget Cards Grid -->
+                <div id="budgets-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Budget Alerts Banner Container -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-bold text-white mb-4">Active Budget Alerts</h3>
+                    <div id="alerts-container" class="space-y-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: SAVINGS GOALS -->
+            <section id="tab-goals" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Savings & Wealth Goals</h3>
+                        <p class="text-xs text-slate-400">Track milestones and allocate funds toward your dreams</p>
+                    </div>
+                    <button onclick="openGoalModal()" class="liquid-glass-button px-4 py-2 rounded-xl text-sm font-semibold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>New Goal</span>
+                    </button>
+                </div>
+
+                <!-- Goals Grid -->
+                <div id="goals-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- TAB 5: AI FINANCIAL ASSISTANT -->
+            <section id="tab-assistant" class="space-y-6 hidden h-[calc(100vh-10rem)] flex flex-col">
+                <div class="liquid-glass-card p-4 rounded-3xl flex items-center justify-between shrink-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">FinGlass AI Financial Advisor</h3>
+                            <p class="text-xs text-emerald-400 flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>Online & Connected to your portfolio</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="askAIPrompt('Analyze my spending habits and give top 3 recommendations')" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 transition-all hidden sm:inline-block">
+                            Analyze Spending
+                        </button>
+                        <button onclick="askAIPrompt('How can I optimize my savings to reach my goals faster?')" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 transition-all hidden sm:inline-block">
+                            Savings Strategy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Box Body -->
+                <div id="chat-messages" class="liquid-glass-card rounded-3xl p-6 flex-1 overflow-y-auto space-y-4">
+                    <!-- Welcome AI Message -->
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-white text-xs shrink-0 mt-1">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div class="liquid-glass p-4 rounded-2xl rounded-tl-none max-w-2xl text-sm text-slate-200 leading-relaxed">
+                            Hello! I am your AI Financial Assistant powered by advanced financial intelligence. I have analyzed your recent transactions, current budgets, and savings goals. How can I assist you with your wealth management today?
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Form -->
+                <div class="liquid-glass-card p-3 rounded-2xl flex items-center space-x-3 shrink-0">
+                    <input type="text" id="chat-input" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="Ask anything about your budget, investments, or spending..." class="liquid-glass-input flex-1 px-4 py-3 rounded-xl text-sm placeholder-slate-400">
+                    <button onclick="sendChatMessage()" class="liquid-glass-button px-5 py-3 rounded-xl text-sm font-semibold text-white flex items-center space-x-2 shadow-lg">
+                        <span>Send</span>
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ADD/EDIT TRANSACTION MODAL -->
+    <div id="tx-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md hidden p-4">
+        <div class="liquid-glass-card w-full max-w-lg p-6 rounded-3xl relative border border-white/20 shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="tx-modal-title" class="text-lg font-bold text-white">Add New Transaction</h3>
+                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="tx-form" onsubmit="saveTransaction(event)" class="space-y-4">
+                <input type="hidden" id="tx-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Description</label>
+                    <input type="text" id="tx-desc" required placeholder="e.g. Whole Foods Grocery" class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Amount ($)</label>
+                        <input type="number" step="0.01" id="tx-amount" required placeholder="0.00" class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Type</label>
+                        <select id="tx-type" class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                            <option value="expense" class="bg-slate-900">Expense</option>
+                            <option value="income" class="bg-slate-900">Income</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Category</label>
+                        <select id="tx-category" class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                            <option value="Food & Dining" class="bg-slate-900">Food & Dining</option>
+                            <option value="Housing" class="bg-slate-900">Housing</option>
+                            <option value="Transport" class="bg-slate-900">Transport</option>
+                            <option value="Entertainment" class="bg-slate-900">Entertainment</option>
+                            <option value="Shopping" class="bg-slate-900">Shopping</option>
+                            <option value="Utilities" class="bg-slate-900">Utilities</option>
+                            <option value="Salary" class="bg-slate-900">Salary</option>
+                            <option value="Investment" class="bg-slate-900">Investment</option>
+                            <option value="Other" class="bg-slate-900">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Date</label>
+                        <input type="date" id="tx-date" required class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Account</label>
+                    <input type="text" id="tx-account" value="Primary Checking (*4821)" required class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                </div>
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-white/10">
+                    <button type="button" onclick="closeTransactionModal()" class="px-5 py-2.5 rounded-2xl text-sm font-semibold text-slate-300 hover:bg-white/5 transition-all">Cancel</button>
+                    <button type="submit" class="liquid-glass-button px-6 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-lg">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SET BUDGET MODAL -->
+    <div id="budget-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md hidden p-4">
+        <div class="liquid-glass-card w-full max-w-md p-6 rounded-3xl relative border border-white/20 shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-white">Set Monthly Budget Limit</h3>
+                <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="saveBudget(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Category</label>
+                    <select id="budget-category" class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                        <option value="Food & Dining" class="bg-slate-900">Food & Dining</option>
+                        <option value="Housing" class="bg-slate-900">Housing</option>
+                        <option value="Transport" class="bg-slate-900">Transport</option>
+                        <option value="Entertainment" class="bg-slate-900">Entertainment</option>
+                        <option value="Shopping" class="bg-slate-900">Shopping</option>
+                        <option value="Utilities" class="bg-slate-900">Utilities</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Monthly Limit ($)</label>
+                    <input type="number" step="1" id="budget-limit" required placeholder="500" class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                </div>
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-white/10">
+                    <button type="button" onclick="closeBudgetModal()" class="px-5 py-2.5 rounded-2xl text-sm font-semibold text-slate-300 hover:bg-white/5 transition-all">Cancel</button>
+                    <button type="submit" class="liquid-glass-button px-6 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-lg">Save Budget</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT GOAL MODAL -->
+    <div id="goal-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md hidden p-4">
+        <div class="liquid-glass-card w-full max-w-md p-6 rounded-3xl relative border border-white/20 shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-white">Create Savings Goal</h3>
+                <button onclick="closeGoalModal()" class="text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="saveGoal(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Goal Name</label>
+                    <input type="text" id="goal-name" required placeholder="e.g. Dream Vacation" class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Target Amount ($)</label>
+                        <input type="number" step="1" id="goal-target" required placeholder="5000" class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Current Saved ($)</label>
+                        <input type="number" step="1" id="goal-current" value="0" required class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Target Date</label>
+                    <input type="date" id="goal-date" required class="liquid-glass-input w-full px-4 py-3 rounded-2xl text-sm">
+                </div>
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-white/10">
+                    <button type="button" onclick="closeGoalModal()" class="px-5 py-2.5 rounded-2xl text-sm font-semibold text-slate-300 hover:bg-white/5 transition-all">Cancel</button>
+                    <button type="submit" class="liquid-glass-button px-6 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-lg">Save Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application Scripts -->
+    <script>
+        // Default Sample State Data
+        let appData = {
+            transactions: [
+                { id: '1', desc: 'TechCorp Monthly Salary', amount: 5400.00, type: 'income', category: 'Salary', date: '2026-10-01', account: 'Primary Checking (*4821)' },
+                { id: '2', desc: 'Whole Foods Market', amount: 142.50, type: 'expense', category: 'Food & Dining', date: '2026-10-08', account: 'Credit Card (*8912)' },
+                { id: '3', desc: 'Luxury Apartment Rent', amount: 1650.00, type: 'expense', category: 'Housing', date: '2026-10-02', account: 'Primary Checking (*4821)' },
+                { id: '4', desc: 'Uber Ride to Airport', amount: 34.20, type: 'expense', category: 'Transport', date: '2026-10-09', account: 'Credit Card (*8912)' },
+                { id: '5', desc: 'Netflix & Spotify Subscriptions', amount: 32.98, type: 'expense', category: 'Entertainment', date: '2026-10-04', account: 'Credit Card (*8912)' },
+                { id: '6', desc: 'Freelance UI Design Project', amount: 1020.00, type: 'income', category: 'Salary', date: '2026-10-07', account: 'PayPal (*3392)' },
+                { id: '7', desc: 'Electric & Internet Utility', amount: 145.00, type: 'expense', category: 'Utilities', date: '2026-10-05', account: 'Primary Checking (*4821)' }
+            ],
+            budgets: {
+                'Food & Dining': { limit: 600, spent: 450 },
+                'Housing': { limit: 1700, spent: 1650 },
+                'Transport': { limit: 250, spent: 180 },
+                'Entertainment': { limit: 200, spent: 140 },
+                'Shopping': { limit: 400, spent: 380 },
+                'Utilities': { limit: 200, spent: 145 }
+            },
+            goals: [
+                { id: 'g1', name: 'Emergency Fund', target: 15000, current: 12500, date: '2026-12-31' },
+                { id: 'g2', name: 'New Electric Vehicle', target: 45000, current: 18400, date: '2027-08-15' },
+                { id: 'g3', name: 'Japan Vacation', target: 5000, current: 3400, date: '2026-11-20' }
+            ]
+        };
+
+        let cashFlowChartInstance = null;
+        let expensePieChartInstance = null;
+
+        // Initialize App on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Set default date for tx modal
+            document.getElementById('tx-date').valueAsDate = new Date();
+            document.getElementById('goal-date').value = '2026-12-31';
+            
+            initCharts();
+            updateDashboardStats();
+            renderTransactions();
+            renderBudgets();
+            renderGoals();
+            renderRecentTransactionsList();
+        });
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            const tabs = ['dashboard', 'transactions', 'budgets', 'goals', 'assistant'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (t === tabId) {
+                    el.classList.remove('hidden');
+                    navBtn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-lg shadow-sky-500/10";
+                } else {
+                    el.classList.add('hidden');
+                    navBtn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-white/5 hover:text-white border border-transparent";
+                }
+            });
+
+            const titles = {
+                'dashboard': 'Financial Dashboard',
+                'transactions': 'Transaction Manager',
+                'budgets': 'Budgets & Alerts',
+                'goals': 'Savings Goals',
+                'assistant': 'AI Financial Advisor'
+            };
+            document.getElementById('current-tab-title').innerText = titles[tabId];
+
+            if (tabId === 'dashboard') {
+                updateDashboardStats();
+                if (cashFlowChartInstance) cashFlowChartInstance.update();
+                if (expensePieChartInstance) expensePieChartInstance.update();
+            }
+        }
+
+        // Calculate and Update Dashboard Stats
+        function updateDashboardStats() {
+            let totalIncome = 0;
+            let totalExpenses = 0;
+
+            appData.transactions.forEach(tx => {
+                if (tx.type === 'income') totalIncome += tx.amount;
+                else totalExpenses += tx.amount;
+            });
+
+            const netWorth = totalIncome - totalExpenses + 19270; // Base savings
+            const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(1) : 0;
+
+            document.getElementById('stat-net-worth').innerText = `$${netWorth.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-income').innerText = `$${totalIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-expenses').innerText = `$${totalExpenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-savings-rate').innerText = `${savingsRate}%`;
+        }
+
+        // Initialize Chart.js Charts
+        function initCharts() {
+            // Cash Flow Bar Chart
+            const ctxCash = document.getElementById('cashFlowChart').getContext('2d');
+            cashFlowChartInstance = new Chart(ctxCash, {
+                type: 'bar',
+                data: {
+                    labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: [5200, 5400, 4900, 6100, 5800, 6420],
+                            backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                            borderColor: 'rgba(56, 189, 248, 1)',
+                            borderWidth: 1,
+                            borderRadius: 8
+                        },
+                        {
+                            label: 'Expenses',
+                            data: [2700, 2900, 2600, 3100, 2750, 2840],
+                            backgroundColor: 'rgba(244, 63, 94, 0.6)',
+                            borderColor: 'rgba(244, 63, 94, 1)',
+                            borderWidth: 1,
+                            borderRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                        }
+                    }
+                }
+            });
+
+            // Expense Distribution Pie Chart
+            const ctxPie = document.getElementById('expensePieChart').getContext('2d');
+            expensePieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Housing', 'Food & Dining', 'Shopping', 'Transport', 'Utilities', 'Entertainment'],
+                    datasets: [{
+                        data: [1650, 450, 380, 180, 145, 140],
+                        backgroundColor: [
+                            'rgba(56, 189, 248, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(236, 72, 153, 0.8)',
+                            'rgba(251, 146, 60, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(244, 63, 94, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#cbd5e1', font: { family: 'Inter', size: 11 }, boxWidth: 12 }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Render Recent Transactions on Dashboard
+        function renderRecentTransactionsList() {
+            const container = document.getElementById('dashboard-recent-list');
+            const recent = appData.transactions.slice(0, 5);
+            container.innerHTML = recent.map(tx => `
+                <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-2xl ${tx.type === 'income' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'} flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${tx.type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">${tx.desc}</p>
+                            <p class="text-xs text-slate-400">${tx.category} • ${tx.date}</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-bold ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}">
+                        ${tx.type === 'income' ? '+' : '-'}$${tx.amount.toFixed(2)}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        // Render Transactions Table
+        function renderTransactions() {
+            const search = document.getElementById('tx-search').value.toLowerCase();
+            const filterType = document.getElementById('tx-filter-type').value;
+            const filterCat = document.getElementById('tx-filter-category').value;
+            const tbody = document.getElementById('transactions-table-body');
+            const noTx = document.getElementById('no-transactions');
+
+            const filtered = appData.transactions.filter(tx => {
+                const matchSearch = tx.desc.toLowerCase().includes(search) || tx.category.toLowerCase().includes(search);
+                const matchType = filterType === 'all' || tx.type === filterType;
+                const matchCat = filterCat === 'all' || tx.category === filterCat;
+                return matchSearch && matchType && matchCat;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                noTx.classList.remove('hidden');
+                return;
+            }
+
+            noTx.classList.add('hidden');
+            tbody.innerHTML = filtered.map(tx => `
+                <tr class="hover:bg-white/5 transition-colors border-b border-white/5">
+                    <td class="p-5 font-medium text-white">${tx.desc}</td>
+                    <td class="p-5">
+                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-slate-300 border border-white/10">${tx.category}</span>
+                    </td>
+                    <td class="p-5 text-slate-400 text-xs">${tx.date}</td>
+                    <td class="p-5 text-slate-400 text-xs">${tx.account}</td>
+                    <td class="p-5 text-right font-bold ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}">
+                        ${tx.type === 'income' ? '+' : '-'}$${tx.amount.toFixed(2)}
+                    </td>
+                    <td class="p-5 text-center">
+                        <button onclick="deleteTransaction('${tx.id}')" class="text-slate-400 hover:text-rose-400 transition-colors p-1.5">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render Budgets & Alerts
+        function renderBudgets() {
+            const grid = document.getElementById('budgets-grid');
+            const alertsContainer = document.getElementById('alerts-container');
+            
+            let alertsHTML = '';
+
+            grid.innerHTML = Object.keys(appData.budgets).map(cat => {
+                const b = appData.budgets[cat];
+                const pct = Math.min(Math.round((b.spent / b.limit) * 100), 100);
+                const isOver = b.spent > b.limit;
+                const isWarning = pct >= 80 && !isOver;
+
+                if (isOver) {
+                    alertsHTML += `
+                        <div class="liquid-glass-card p-4 rounded-2xl border-rose-500/40 bg-rose-500/10 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white text-sm">Budget Exceeded: ${cat}</h4>
+                                    <p class="text-xs text-rose-300">You have spent $${b.spent} of your $${b.limit} monthly limit.</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">Over Budget</span>
+                        </div>
+                    `;
+                } else if (isWarning) {
+                    alertsHTML += `
+                        <div class="liquid-glass-card p-4 rounded-2xl border-amber-500/40 bg-amber-500/10 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-bell"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white text-sm">Budget Warning: ${cat}</h4>
+                                    <p class="text-xs text-amber-300">You have used ${pct}% ($${b.spent} / $${b.limit}) of your budget.</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">80%+ Reached</span>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="liquid-glass-card p-6 rounded-3xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-white text-base">${cat}</h4>
+                                <span class="text-xs font-semibold ${isOver ? 'text-rose-400' : isWarning ? 'text-amber-400' : 'text-emerald-400'}">${pct}%</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-2">
+                                <span>Spent: <strong class="text-white">$${b.spent}</strong></span>
+                                <span>Limit: <strong class="text-white">$${b.limit}</strong></span>
+                            </div>
+                            <div class="w-full h-2.5 rounded-full bg-white/10 overflow-hidden">
+                                <div class="h-full rounded-full ${isOver ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-gradient-to-r from-sky-400 to-indigo-500'}" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+                            <span>Remaining: $${Math.max(b.limit - b.spent, 0)}</span>
+                            <button onclick="editBudgetPrompt('${cat}', ${b.limit})" class="text-sky-400 hover:underline font-semibold">Edit Limit</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (!alertsHTML) {
+                alertsHTML = `
+                    <div class="liquid-glass-card p-6 rounded-2xl text-center text-slate-400 text-sm">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-2xl mb-2"></i>
+                        <p class="text-white font-medium">All budgets are currently healthy and within limits.</p>
+                    </div>
+                `;
+            }
+
+            alertsContainer.innerHTML = alertsHTML;
+        }
+
+        // Render Goals
+        function renderGoals() {
+            const grid = document.getElementById('goals-grid');
+            grid.innerHTML = appData.goals.map(g => {
+                const pct = Math.min(Math.round((g.current / g.target) * 100), 100);
+                return `
+                    <div class="liquid-glass-card p-6 rounded-3xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-bold text-white text-base">${g.name}</h4>
+                                <span class="text-xs font-bold text-sky-400">${pct}%</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mb-4">Target Date: ${g.date}</p>
+                            <div class="flex justify-between text-xs text-slate-300 mb-2">
+                                <span>Saved: <strong class="text-white">$${g.current.toLocaleString()}</strong></span>
+                                <span>Goal: <strong class="text-white">$${g.target.toLocaleString()}</strong></span>
+                            </div>
+                            <div class="w-full h-2.5 rounded-full bg-white/10 overflow-hidden">
+                                <div class="h-full rounded-full bg-gradient-to-r from-sky-400 to-purple-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                            <button onclick="contributeGoal('${g.id}')" class="px-3 py-1.5 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-semibold hover:bg-sky-500/30 transition-all">
+                                + Add Funds
+                            </button>
+                            <button onclick="deleteGoal('${g.id}')" class="text-slate-400 hover:text-rose-400 text-xs">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Modal Controls
+        function openTransactionModal() {
+            document.getElementById('tx-form').reset();
+            document.getElementById('tx-date').valueAsDate = new Date();
+            document.getElementById('tx-modal').classList.remove('hidden');
+        }
+        function closeTransactionModal() {
+            document.getElementById('tx-modal').classList.add('hidden');
+        }
+        function openBudgetModal() {
+            document.getElementById('budget-modal').classList.remove('hidden');
+        }
+        function closeBudgetModal() {
+            document.getElementById('budget-modal').classList.add('hidden');
+        }
+        function openGoalModal() {
+            document.getElementById('goal-modal').classList.remove('hidden');
+        }
+        function closeGoalModal() {
+            document.getElementById('goal-modal').classList.add('hidden');
+        }
+
+        // Save Transaction
+        function saveTransaction(e) {
+            e.preventDefault();
+            const desc = document.getElementById('tx-desc').value;
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const type = document.getElementById('tx-type').value;
+            const category = document.getElementById('tx-category').value;
+            const date = document.getElementById('tx-date').value;
+            const account = document.getElementById('tx-account').value;
+
+            const newTx = {
+                id: Date.now().toString(),
+                desc, amount, type, category, date, account
+            };
+
+            appData.transactions.unshift(newTx);
+
+            if (type === 'expense' && appData.budgets[category]) {
+                appData.budgets[category].spent += amount;
+            }
+
+            closeTransactionModal();
+            updateDashboardStats();
+            renderTransactions();
+            renderBudgets();
+            renderRecentTransactionsList();
+        }
+
+        function deleteTransaction(id) {
+            const tx = appData.transactions.find(t => t.id === id);
+            if (tx && tx.type === 'expense' && appData.budgets[tx.category]) {
+                appData.budgets[tx.category].spent = Math.max(0, appData.budgets[tx.category].spent - tx.amount);
+            }
+            appData.transactions = appData.transactions.filter(t => t.id !== id);
+            updateDashboardStats();
+            renderTransactions();
+            renderBudgets();
+            renderRecentTransactionsList();
+        }
+
+        // Save Budget
+        function saveBudget(e) {
+            e.preventDefault();
+            const cat = document.getElementById('budget-category').value;
+            const limit = parseFloat(document.getElementById('budget-limit').value);
+
+            if (!appData.budgets[cat]) {
+                appData.budgets[cat] = { limit, spent: 0 };
+            } else {
+                appData.budgets[cat].limit = limit;
+            }
+
+            closeBudgetModal();
+            renderBudgets();
+        }
+
+        function editBudgetPrompt(cat, currentLimit) {
+            const newLimit = prompt(`Enter new monthly budget limit for ${cat}:`, currentLimit);
+            if (newLimit !== null && !isNaN(newLimit)) {
+                appData.budgets[cat].limit = parseFloat(newLimit);
+                renderBudgets();
+            }
+        }
+
+        // Save Goal
+        function saveGoal(e) {
+            e.preventDefault();
+            const name = document.getElementById('goal-name').value;
+            const target = parseFloat(document.getElementById('goal-target').value);
+            const current = parseFloat(document.getElementById('goal-current').value);
+            const date = document.getElementById('goal-date').value;
+
+            appData.goals.push({
+                id: Date.now().toString(),
+                name, target, current, date
+            });
+
+            closeGoalModal();
+            renderGoals();
+        }
+
+        function contributeGoal(id) {
+            const goal = appData.goals.find(g => g.id === id);
+            const amount = prompt(`Enter amount to add to "${goal.name}" ($):`, '250');
+            if (amount !== null && !isNaN(amount)) {
+                goal.current += parseFloat(amount);
+                renderGoals();
+            }
+        }
+
+        function deleteGoal(id) {
+            appData.goals = appData.goals.filter(g => g.id !== id);
+            renderGoals();
+        }
+
+        function resetData() {
+            if (confirm("Reset application data to sample state?")) {
+                location.reload();
+            }
+        }
+
+        function toggleNotifications() {
+            alert("You have 2 active budget alerts and 1 savings milestone reminder.");
+        }
+
+        // AI Chat Assistant Logic
+        function sendChatMessage() {
+            const inputEl = document.getElementById('chat-input');
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            appendChatMessage('user', text);
+            inputEl.value = '';
+
+            // Simulate intelligent AI response
+            setTimeout(() => {
+                let reply = generateAIResponse(text);
+                appendChatMessage('ai', reply);
+            }, 800);
+        }
+
+        function askAIPrompt(promptText) {
+            switchTab('assistant');
+            appendChatMessage('user', promptText);
+            setTimeout(() => {
+                let reply = generateAIResponse(promptText);
+                appendChatMessage('ai', reply);
+            }, 800);
+        }
+
+        function appendChatMessage(sender, text) {
+            const chatBox = document.getElementById('chat-messages');
+            const isAi = sender === 'ai';
+
+            const html = `
+                <div class="flex items-start space-x-3 ${isAi ? '' : 'flex-row-reverse space-x-reverse'}">
+                    <div class="w-8 h-8 rounded-xl ${isAi ? 'bg-gradient-to-tr from-sky-400 to-indigo-600' : 'bg-gradient-to-tr from-purple-500 to-pink-500'} flex items-center justify-center text-white text-xs shrink-0 mt-1">
+                        <i class="fa-solid ${isAi ? 'fa-wand-magic-sparkles' : 'fa-user'}"></i>
+                    </div>
+                    <div class="liquid-glass p-4 rounded-2xl ${isAi ? 'rounded-tl-none' : 'rounded-tr-none bg-sky-500/20'} max-w-2xl text-sm text-slate-200 leading-relaxed">
+                        ${text}
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', html);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function generateAIResponse(query) {
+            const q = query.toLowerCase();
+            if (q.includes('spending') || q.includes('recommend') || q.includes('habits')) {
+                return "Based on your transaction history, your highest expense category is Housing ($1,650), followed by Food & Dining ($450). Your dining out expenses increased by 15% this month compared to last month. Recommendation: Set a tighter dining out cap of $350 for next month to increase your savings rate above 60%.";
+            } else if (q.includes('saving') || q.includes('goal') || q.includes('faster')) {
+                return "To reach your 'Emergency Fund' goal ($15,000) by December 31, you only need to save $2,500 more. With your current monthly savings rate of over $3,500, you are on track to achieve this goal 2 months ahead of schedule! Consider redirecting surplus funds toward your 'New Electric Vehicle' goal.";
+            } else if (q.includes('invest') || q.includes('wealth')) {
+                return "Your cash balance across checking accounts is healthy ($24,850.00). Given your high savings rate (55.8%), you might want to allocate 30% of your liquid surplus into a diversified low-cost index fund or automated high-yield savings vault yielding 4.8% APY to compound your wealth.";
+            } else {
+                return "I've analyzed your financial portfolio for this query. Your net balance is strong ($24,850.00) and monthly cash flow is positive. Let me know if you would like specific guidance on budgeting, tax-loss harvesting, or subscription audits!";
+            }
+        }
+    </script>
+</body>
+</html>
